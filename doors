@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # @garyd github.com/diemastermonkey 2020
-# Demo: Self-contained procedural generation dungeon crawl
-# 
+# Demo - Self-contained procedural generation dungeon crawl
 # Usage: doors <command>
-#
+# ---------------------------------------------------------------
 #   look                        Show current room/status
 #   look <N|E|S|W>              Look north, east, south, west
 #   open <N|E|S|W>              Unlock a door (or try)
@@ -14,9 +13,10 @@
 #   exits                       "Look" in all directions
 #   dump <N|E|S|W>              Dev: Dump room in direction
 #   keys                        Dev: Dump player keys
-#
+# ---------------------------------------------------------------
 # Tips:
 #   You can also just use N, E, S, or W to go in those directions.
+# ---------------------------------------------------------------
 #
 
 # Libs
@@ -192,10 +192,10 @@ def fnData (argName):
 
 def fnHelp ():                                 # "Self" help ;)
     global sSource;
-    # print ("Debug: Source is\n", sSource);
+    # To do: Rewrite expression to accept all wordish chars :(
     print (
         re.search (
-            r'(^# [\w\s\:\-\.]+)+', sSource, re.MULTILINE
+            r'(^# [\w\s\:\.\'\"\-\,\.\(\)\|\<\>\\\/]+)+', sSource, re.MULTILINE
         ).group(0)
     );
     return;
