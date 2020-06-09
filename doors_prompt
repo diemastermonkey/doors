@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+# Easy Doors command prompt
+
+$d = "./doors";
+while (true) {
+	print ("Doors > ");
+	$i = <STDIN>;
+	print (`$d $i`) if ($i =~ /\w/);
+}

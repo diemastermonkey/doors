@@ -1,0 +1,389 @@
+#!/usr/bin/python
+# @garyd github.com/diemastermonkey 2020
+# Self-contained procedural generation demo
+# 
+# Usage: doors <command>
+#
+#   look                        Show current room/status
+#   look <N|E|S|W>              Look north, east, south, west
+#   open <N|E|S|W>              Unlock a door (or try)
+#   go   <N|E|S|W>              Go in direction (or try)
+#   take <object>               Take thing, if hands are free
+#   drop <object>               Drop whatever you're holding
+#   listen <N|E|S|W>            Listen at door in direction
+#   exits                       "Look" in all directions
+#   dump <N|E|S|W>              Dev: Dump room in direction
+#   keys                        Dev: Dump player keys
+#
+# Tips:
+#   You can also just use N, E, S, or W to go in those directions.
+#
+
+# Libs
+import re;
+import sys;
+import time;            # Disused till event cycles added
+import random;
+
+# Globs
+iX = iY = 0;
+sTemp = "";             # Used by inline commands
+sSource = "";           # For embedded data
+oCurrentRoom = None;
+# To calc pos from dir: Dir:[Xcomponent,Ycomponent]
+dDirs = {"n":[0,-1], "s":[0,1], "w":[-1,0], "e":[1,0]};
+# Simple string array of attribute mnemonics
+aAttributes = ("STR", "DEX", "CON", "INT", "WIS", "CHA");
+aActions    = ("Attack", "Defend", "Hide");
+
+# Config
+iWidth = 8;             # World size (-x to +x)
+iHeight = 8;
+
+# Structures
+# -----------------------------------------------------
+class Room_Type:
+    X = Y = None;
+    Seed = 0;
+    DoorCode = None;
+    Pit = 0;                                # Whether a pit present
+
+    def __init__ (self, argX, argY):
+        self.X = int(argX);
+        self.Y = int(argY);
+        self.Seed = (4096 + self.X * 2) + self.Y * 33 + self.X;
+        random.seed (self.Seed);            # Seed for procgen
+        self.DoorCode = lDoorCodes[random.randrange(0, len(lDoorCodes))];
+        if random.randrange (0, 3) == 0:    # 1-in-X chance of a pit
+            self.Pit = 1;
+        return;
+
+    def Dump (self):
+        print ("? %dx%d | %s | %i | Occupied: %i | Pit: %s" %
+            (self.X, self.Y, self.Name(), self.Seed, self.Occupied(), self.Pit)
+        );
+        return;
+
+    def Name (self):
+        random.seed (self.Seed);       # Re-seed procgen
+        return ("The " + lRoomSizes[random.randint(0, len(lRoomSizes)-1)] + " " 
+            + lRoomAdjectives[random.randint(0, len(lRoomAdjectives)-1)] + " " 
+            + lRoomTypes[random.randint(0, len(lRoomTypes)-1)]
+        );
+
+    # Return true if NPC present (unless has a pit)
+    def Occupied (self):
+        random.seed (self.Seed);      # To do: Time-curve presence
+        if random.randrange(0, 2) == 0 and not self.Pit:
+            return (True);
+        return (False);               # Not occupied (or pit) 
+
+    def Listen (self):                # Shortcut for listener text
+        if self.Occupied():
+            return ("something");
+        else:
+            return ("nothing");       # Append to "You hear..."
+
+    def Code (self, argCodes):        # Return a scrambled code
+        random.seed (self.Seed);      # Seed for procgen
+        return ("".join (random.sample(self.DoorCode, len(self.DoorCode))));
+
+    # Return true if argCode correct
+    def Open (self, argCode, argCodes):
+        if argCode == self.DoorCode:
+            return (True);
+        return (False);
+
+# General-purpose "invalid" object, use in place of rooms etc
+class Message_Type:
+    Message = "Nothing";                          # Redundant
+    Seed = None;
+    def __init__ (self, argMessage = "Nothing"):
+        self.Message = argMessage;
+        return (None);               # For callers: No room here
+
+    def Dump (self):
+        print (self.Message);
+        return;
+
+    def Listen (self):
+        return ("nothing");
+
+class BrawlerType:                         # Non-player character
+
+  def __init__ (self, argSeed = -1):
+    self.iSeed = int(argSeed);             # One mandatory property
+    if (self.iSeed > 0):
+      random.seed(self.iSeed);
+    else:
+      random.seed();                       # First true random...
+      self.iSeed = random.randint(1,255);  # ...then, small world seed
+    return;
+
+  def Dump (self):
+    print ("  Name\t", self.fnName(), "\tSeed", self.iSeed);
+    print ("  Wields", Weapons[self.fnWeapon()], "\tAC", self.fnAC());
+    print ("  HP\t", self.fnHP());
+    for sAttribute in aAttributes:           # Iterate attribtes
+      print (" ", sAttribute, "\t", self.fnAttribute(sAttribute));
+
+    print ("  Action", self.fnAction());
+    return;
+
+  def fnName (self):            # Procgen name from glob sNames
+    random.seed (self.iSeed);
+    return "".join(random.sample(Names, random.randint(3,4)));
+
+  def fnWeapon (self):          # Procgen weapon from glob sWeapons
+    random.seed (self.iSeed);
+    return random.randint(0, len(Weapons)-1); # Returns an *index*
+
+  # Procgen DND attribute lte 18, by mnemonic string
+  # Each has unique 
+  def fnAttribute (self, argAttribute):
+    iAttribIndex = aAttributes.index(argAttribute);
+    random.seed (self.iSeed + 3 * iAttribIndex); # Unique seed, each
+    return (random.randint (5, 20));
+
+  # Base HP (simplified - to do: consult DMG)
+  def fnHP (self):                           # Initial HP = Str+Con*2
+    return (self.fnAttribute("STR") + self.fnAttribute("CON") * 2);
+
+  # Base Armor Class - see Basic Rules p. 9
+  # *Not* correct per roll20.net/compendium/dnd5e/Ability%20Scores#content
+  def fnAC (self):
+    return(int(self.fnAttribute ("DEX") - 10 / 2));
+
+  # Action Seed: A seed to use w/PRNG to procgen action sets at a time
+  def fnActionSeed (self):
+    random.seed (self.iSeed + 4096);         # Just so its different 
+    return (random.randint (0,65535));       # Big domain
+
+  # WIP: Return action based on action seed and clocked curve
+  def fnAction (self):
+    return (int(time.time()));               # DEBUG: return action #
+
+# End Brawler class
+
+# Functions
+# -----------------------------------------------------
+# fnData: Return embedded data, or multiple inline cmds, as list
+def fnData (argName):
+    global sSource;                            # Again, python wtf
+    if len(sSource) < 1:                       # If source unread
+        infile = open (sys.argv[0], "r");
+        sSource = infile.read();
+        infile.close();
+    lRecords = re.findall('^# ' + argName + ".*", sSource, re.MULTILINE);
+
+    lRet = [];
+    for lRT in lRecords:
+        lT = re.sub ('# ' + argName + ' ', '', lRT); # Yank tokens
+        lT = re.sub ('# ' + argName, '', lT);        # KLUDGE: Empty values
+        lRet.append(lT);
+
+    if not len(lRet[0]):                       # Kludge for empty results
+        return ();
+
+    if not re.findall("=", str(lRet)):         # Don't split inline cmds
+        return (lRet[0].split(' '));           # For routine inline data
+    
+    return (lRet);
+
+def fnHelp ():                                 # "Self" help ;)
+    global sSource;
+    # print ("Debug: Source is\n", sSource);
+    print (
+        re.search (
+            r'(^# [\w\s\:\-\.]+)+', sSource, re.MULTILINE
+        ).group(0)
+    );
+    return;
+
+# fnUpdate: Inline data
+def fnUpdate (argField, argValue):       # Update field in self
+  global sSource;
+  sNewSelf = re.sub (
+    r'# ' + argField + '.*',             # Pattern to match
+    '# ' + argField + ' ' + argValue,    # Replacement
+    sSource, re.MULTILINE|re.DOTALL      # Target, opts
+  );
+  if sSource == sNewSelf:                # Quietly skip non-updates
+      return();
+  outfile = open (sys.argv[0], "w");     # Note: Truncates file!
+  outfile.write (sNewSelf);              # Crazy, huh?
+  outfile.close();
+  print ("Game state updated with", argField, argValue);
+  # sys.exit(0); 
+
+# fnRoom: Return (obj) room to NSEW of (glob) X, Y - or none
+# Or (glob) current room
+def fnRoom (argDir = None):
+    global iX, iY, iWidth, iHeight, dDirs;   # Need these globs
+    if not argDir:          # If no argdir, return current room
+        return (oCurrentRoom);
+
+    tX = iX + dDirs[argDir][0];     # Apply move component to X, Y
+    tY = iY + dDirs[argDir][1];
+
+    # Bounds: Nothing there (returns Message object)
+    if abs(tX) > iWidth / 2 or abs(tY) > iHeight / 2: 
+        print ("To the " + argDir + " is no exit");
+        return (Message_Type("To the " + argDir + " is no exit"));
+
+    # Else, report and generate and return room 
+    print ("To the %s is %s" % (argDir, Room_Type(tX, tY).Name()));
+    return (Room_Type(tX, tY));
+
+# Note: Really, could be a teleport too!
+def fnMove (argDir):                   # Player move in dir
+    global lPlayerKeys, iX, iY;
+    oRoom = fnRoom(argDir);
+    if oRoom.Seed == None:
+        print ("Nothing in that direction.");
+        return();
+
+    sKey = oRoom.Seed;
+    if str(sKey) in lPlayerKeys:
+        print ("! Key in collection", sKey);
+        print ("! Granting access, updating position");
+        fnUpdate ("PlayerPosition", str(oRoom.X) + " " + str(oRoom.Y));
+        return;
+
+    # Inform/hint user if no key to this door yet
+    sHint = oRoom.Code(lDoorCodes);
+    print ("? Open this door with \"open <N|E|S|W> <code>\"");
+    print ("? Hint:", sHint);
+    return;
+
+# Handle user unlocking a door with code
+def fnOpen (argRoom, argCode, argCodes):
+    #
+    print ("! To Do: Insert code: Return true if user already has key");
+    #
+    if argRoom.Open(argCode, argCodes):
+        print ("! Well done! You have unlocked", argRoom.Name());
+        fnGetKey (argRoom);
+        return (True);
+
+    print ("Wrong passcode.");
+    return (False);
+
+def fnGetKey (argRoom):
+    global lPlayerKeys;
+    if not lPlayerKeys:           # Safety in init state
+        lPlayerKeys = [];
+    if str(argRoom.Seed) in lPlayerKeys:  # Ditch if already have
+        return; 
+    lPlayerKeys.append(str(argRoom.Seed));
+    print ("You've acquired the key to %s!" % (argRoom.Name()));
+    sPK = " ".join(lPlayerKeys);
+    fnUpdate ("PlayerKeys", sPK);
+    return;
+
+def fnInit ():                          # One-time new game init
+    global iX, iY, iWidth, iHeight, oCurrentRoom;
+    iX = random.randint(0, iWidth/2);   # New game, rand pos
+    iY = random.randint(0, iHeight/2);
+    oCurrentRoom = Room_Type (iX, iY);
+    # To do: Grant freebie key to current room
+    # fnGetKey(oCurrentRoom);
+    # To do: Grant one free gift: random key, etc.
+    # Update inline data
+    fnUpdate ("PlayerPosition", str(iX) + " " + str(iY));
+    return;
+
+def fnCommand (argCommand, argArg="", argParm=""):  # Handle game commands
+    global dictCommands;
+    if argCommand in dictCommands:
+        for sCmd in dictCommands[argCommand].split(";"):
+            # Replace tokens in command
+            sCmd = sCmd.replace ("_ARG_", argArg);
+            sCmd = sCmd.replace ("_PARM_", argParm);
+            if len(sCmd):             # Empty cmds are fatal
+                eval (sCmd);
+    return;
+
+def fnTimeCurve (argOffset=0):
+    # Procgen a value from clocked curve
+    return;
+
+# Main
+# -----------------------------------------------------
+lPlayerKeys = fnData("PlayerKeys"); # Mb blank 1-elm list :(
+lRoomAdjectives = fnData ("RoomAdjectives");  # Load world data
+lRoomSizes = fnData ("RoomSizes"); 
+lRoomTypes = fnData ("RoomTypes"); 
+lDoorCodes = fnData ("DoorCodes");
+Names = fnData ("Names");                     # NPC data
+Weapons = fnData ("Weapons");
+
+dictCommands = dict();           # Inline cmds special handling
+lTemp = fnData ("Commands");
+for sC in lTemp:                 # Split dict, 2 field max
+    sSplit = sC.split("=", 2);
+    dictCommands[sSplit[0]] = sSplit[1];
+    sDName = sSplit[0];
+
+# Load/init game state
+lTemp = fnData("PlayerPosition");     # Get player position
+if len(lTemp) >= 2:                   # If new game, init
+    iX = int(lTemp[0]);               # Else pos via inline data
+    iY = int(lTemp[1]);
+else:
+    fnInit();
+
+# Instantiate current room
+oCurrentRoom = Room_Type (iX, iY);
+oCurrentRoom.Dump();
+# Test NPC dump
+if oCurrentRoom.Occupied():
+    print ("! Room occupied");
+    oNPC = BrawlerType (oCurrentRoom.Seed);
+    oNPC.Dump();
+
+# Handle command-line args, with args: Needs optimization bad
+if len(sys.argv) > 1:
+    sParm = "";                # Default blank user cmd arg
+
+    # One-word user cmd, no args
+    if len(sys.argv) == 2:
+        fnCommand(sys.argv[1].lower()); 
+    # Handle 1-arg user commands ("go e")
+    if len(sys.argv) == 3:
+        fnCommand(sys.argv[1].lower(), sys.argv[2].lower()); 
+    # Handle 2-arg user commands ("open e secret")
+    if len(sys.argv) == 4:
+        fnCommand(sys.argv[1].lower(), sys.argv[2].lower(), sys.argv[3].lower()); 
+# Fin
+
+# Inline data and game state
+# -----------------------------------------------------
+# Game State (randomized if empty, ie new game)
+# PlayerPosition 4 0
+# PlayerKeys 4108 4141 4075 4042 4009 3976 4174 4207 4240 4237
+#
+# Names ad af ag ar at av az ba bi bo bon bu co ci da di do du fa fi fo fu ga ge gi gu io ko la lan lin lo re ro pa ta to von za x op yo san ma po u e
+# Weapons pillow charm fist herring rock stick sword hammer crossbow magic
+#
+# RoomSizes Miniature Tiny Cramped Small Cozy Modest Generous Large Roomy Giant
+# RoomAdjectives Antique Appealing Auspicious Bare Best Charming Chilly Confusing Cosmopolitan Cutest Divine Dreamy Eccentric Elaborate Elusive Expensive Fancy Gorgeous Gracious Grand Gritty Heavenly Hypothetical Illusory Impressive Intriguing Lavish Luxurious Minimalist Mysterious Mythological Other Obscure Opulant Outlandish Picturesque Quaint Quirky Rustic Sophisticated Spartan Stinky Strange Stuffy Sweet Superfluous Surreal Unearthly Unusual Ugly Uninspired Warm Weird Whimsical Wicked Worst Windy Wondrous
+# RoomTypes Anteroom Archway Area Arena Atrium Attic Auditorium Ballroom Bedroom Boudoir Breezeway Causeway Cellar Chamber Chapel Cinema Classroom Cloakroom Closet Corridor Courtyard Crypt Cubicle Deck Den Dungeon Entryway Foyer Gallery Garden Gameroom Hall Kitchen Lab Larder Library Lobby Lodge Loft Mailroom Office Pantry Parlour Patio Porch Quarters Room Sauna Shed Showroom Skyway Skydome Studio Study Suite Theatre Wardrobe Workshop
+#
+# DoorCodes knock unlock secure sesame secrets pathway opening
+#
+# Commands listen=print('You listen to the %s, and hear %s.' % ("_ARG_",fnRoom("_ARG_").Listen()));
+# Commands exits=fnRoom('n');fnRoom('e');fnRoom('s');fnRoom('w');
+# Commands look=fnRoom('_ARG_');
+# Commands take=print("Not yet implemented.");
+# Commands drop=print("Not yet implemented.");
+# Commands go=fnMove('_ARG_');
+# Commands open=fnOpen(fnRoom('_ARG_'), '_PARM_', lDoorCodes);
+# Commands keys=print("Player keys:", lPlayerKeys);
+# Commands dump=fnRoom('_ARG_').Dump();
+# Commands n=fnMove('n');
+# Commands e=fnMove('e');
+# Commands s=fnMove('s');
+# Commands w=fnMove('w');
+# Commands help=fnHelp();
+# ---------------------------------------------------------

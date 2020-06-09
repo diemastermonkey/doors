@@ -1,0 +1,5 @@
+#!/usr/bin/sh
+./doors dump n
+./doors dump e
+./doors dump s
+./doors dump w
