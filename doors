@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # @garyd github.com/diemastermonkey 2020
-# Self-contained procedural generation demo
+# Demo: Self-contained procedural generation dungeon crawl
 # 
 # Usage: doors <command>
 #
