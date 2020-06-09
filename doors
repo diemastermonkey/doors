@@ -360,8 +360,8 @@ if len(sys.argv) > 1:
 # Inline data and game state
 # -----------------------------------------------------
 # Game State (randomized if empty, ie new game)
-# PlayerPosition 4 0
-# PlayerKeys 4108 4141 4075 4042 4009 3976 4174 4207 4240 4237
+# PlayerPosition
+# PlayerKeys
 #
 # Names ad af ag ar at av az ba bi bo bon bu co ci da di do du fa fi fo fu ga ge gi gu io ko la lan lin lo re ro pa ta to von za x op yo san ma po u e
 # Weapons pillow charm fist herring rock stick sword hammer crossbow magic
