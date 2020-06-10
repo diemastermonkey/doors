@@ -360,7 +360,7 @@ if len(sys.argv) > 1:
 # Inline data and game state
 # -----------------------------------------------------
 # Game State (randomized if empty, ie new game)
-# PlayerPosition
+# PlayerPosition 0 3
 # PlayerKeys
 #
 # Names ad af ag ar at av az ba bi bo bon bu co ci da di do du fa fi fo fu ga ge gi gu io ko la lan lin lo re ro pa ta to von za x op yo san ma po u e
