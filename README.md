@@ -23,14 +23,17 @@ Usage: doors <command>
   take <object>               Take thing, if hands are free
 
   drop <object>               Drop whatever you're holding
+
   listen <N|E|S|W>            Listen at door in direction
+
   exits                       "Look" in all directions
+
   dump <N|E|S|W>              Dev: Dump room in direction
+
   keys                        Dev: Dump player keys
----------------------------------------------------------------
+
 Tips:
   You can also just use N, E, S, or W to go in those directions.
----------------------------------------------------------------
 
 [garyd@dizzymouse doors]$ ./doors look
 
