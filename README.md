@@ -8,23 +8,23 @@ Here is a sample run:
 
 [garyd@dizzymouse doors]$ ./doors help
 
-# Demo - Self-contained procedural generation dungeon crawl
-# Usage: doors <command>
-# ---------------------------------------------------------------
-#   look                        Show current room/status
-#   look <N|E|S|W>              Look north, east, south, west
-#   open <N|E|S|W>              Unlock a door (or try)
-#   go   <N|E|S|W>              Go in direction (or try)
-#   take <object>               Take thing, if hands are free
-#   drop <object>               Drop whatever you're holding
-#   listen <N|E|S|W>            Listen at door in direction
-#   exits                       "Look" in all directions
-#   dump <N|E|S|W>              Dev: Dump room in direction
-#   keys                        Dev: Dump player keys
-# ---------------------------------------------------------------
-# Tips:
-#   You can also just use N, E, S, or W to go in those directions.
-# ---------------------------------------------------------------
+Demo - Self-contained procedural generation dungeon crawl
+Usage: doors <command>
+---------------------------------------------------------------
+  look                        Show current room/status
+  look <N|E|S|W>              Look north, east, south, west
+  open <N|E|S|W>              Unlock a door (or try)
+  go   <N|E|S|W>              Go in direction (or try)
+  take <object>               Take thing, if hands are free
+  drop <object>               Drop whatever you're holding
+  listen <N|E|S|W>            Listen at door in direction
+  exits                       "Look" in all directions
+  dump <N|E|S|W>              Dev: Dump room in direction
+  keys                        Dev: Dump player keys
+---------------------------------------------------------------
+Tips:
+  You can also just use N, E, S, or W to go in those directions.
+---------------------------------------------------------------
 
 [garyd@dizzymouse doors]$ ./doors look
 
