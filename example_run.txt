@@ -29,10 +29,6 @@ To the e is The Small Stinky Garden
 To the s is no exit
 To the w is The Small Obscure Crypt
 
-[garyd@dizzymouse doors]$ ./doors look n
-? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
-To the n is The Cramped Fancy Causeway
-
 [garyd@dizzymouse doors]$ ./doors listen n
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway

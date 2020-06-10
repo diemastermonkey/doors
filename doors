@@ -14,8 +14,7 @@
 #   dump <N|E|S|W>              Dev: Dump room in direction
 #   keys                        Dev: Dump player keys
 # ---------------------------------------------------------------
-# Tips:
-#   You can also just use N, E, S, or W to go in those directions.
+# Tip: You may use simply N, E, S, or W to go those directions.
 # ---------------------------------------------------------------
 #
 
@@ -30,7 +29,7 @@ iX = iY = 0;
 sTemp = "";             # Used by inline commands
 sSource = "";           # For embedded data
 oCurrentRoom = None;
-# To calc pos from dir: Dir:[Xcomponent,Ycomponent]
+# Dir-to-move lookup: Dir:[Xcomponent,Ycomponent]
 dDirs = {"n":[0,-1], "s":[0,1], "w":[-1,0], "e":[1,0]};
 # Simple string array of attribute mnemonics
 aAttributes = ("STR", "DEX", "CON", "INT", "WIS", "CHA");
@@ -61,6 +60,12 @@ class Room_Type:
     def Dump (self):
         print ("? %dx%d | %s | %i | Occupied: %i | Pit: %s" %
             (self.X, self.Y, self.Name(), self.Seed, self.Occupied(), self.Pit)
+        );
+        return;
+
+    def Text (self):                   # Pretty user version of dump
+        print ("? %s | Occupied: %i | Pit: %s" %
+            (self.Name(), self.Occupied(), self.Pit)
         );
         return;
 
@@ -335,26 +340,31 @@ else:
 
 # Instantiate current room
 oCurrentRoom = Room_Type (iX, iY);
-oCurrentRoom.Dump();
+oCurrentRoom.Text();
 # Test NPC dump
 if oCurrentRoom.Occupied():
-    print ("! Room occupied");
+    print ("! Someone is here");
     oNPC = BrawlerType (oCurrentRoom.Seed);
     oNPC.Dump();
 
-# Handle command-line args, with args: Needs optimization bad
-if len(sys.argv) > 1:
-    sParm = "";                # Default blank user cmd arg
+# Handle command-line args, with args
+# Needs optimization bad
+if len(sys.argv) < 2:
+    fnHelp();
+    exit();
 
-    # One-word user cmd, no args
-    if len(sys.argv) == 2:
-        fnCommand(sys.argv[1].lower()); 
-    # Handle 1-arg user commands ("go e")
-    if len(sys.argv) == 3:
-        fnCommand(sys.argv[1].lower(), sys.argv[2].lower()); 
-    # Handle 2-arg user commands ("open e secret")
-    if len(sys.argv) == 4:
-        fnCommand(sys.argv[1].lower(), sys.argv[2].lower(), sys.argv[3].lower()); 
+sParm = "";                # Default blank user cmd arg
+
+# One-word user cmd, no args ("exits")
+if len(sys.argv) == 2:
+    fnCommand(sys.argv[1].lower()); 
+# 1-arg user commands ("go e")
+if len(sys.argv) == 3:
+    fnCommand(sys.argv[1].lower(), sys.argv[2].lower()); 
+# 2-arg user commands ("open e secret")
+if len(sys.argv) == 4:
+    fnCommand(sys.argv[1].lower(), sys.argv[2].lower(), sys.argv[3].lower()); 
+
 # Fin
 
 # Inline data and game state
