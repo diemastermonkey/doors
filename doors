@@ -218,8 +218,9 @@ def fnUpdate (argField, argValue):       # Update field in self
   outfile = open (sys.argv[0], "w");     # Note: Truncates file!
   outfile.write (sNewSelf);              # Crazy, huh?
   outfile.close();
-  print ("Game state updated with", argField, argValue);
+  # print ("Game state updated with", argField, argValue);
   # sys.exit(0); 
+  return;
 
 # fnRoom: Return (obj) room to NSEW of (glob) X, Y - or none
 # Or (glob) current room
@@ -250,9 +251,12 @@ def fnMove (argDir):                   # Player move in dir
 
     sKey = oRoom.Seed;
     if str(sKey) in lPlayerKeys:
-        print ("! Key in collection", sKey);
-        print ("! Granting access, updating position");
+        print ("! You open the door with your key.");
         fnUpdate ("PlayerPosition", str(oRoom.X) + " " + str(oRoom.Y));
+        oRoom.Text();    # Show user new location
+        if oRoom.Occupied():
+            oNPC = BrawlerType (oRoom.Seed);
+            oNPC.Dump();
         return;
 
     # Inform/hint user if no key to this door yet
@@ -370,8 +374,8 @@ if len(sys.argv) == 4:
 # Inline data and game state
 # -----------------------------------------------------
 # Game State (randomized if empty, ie new game)
-# PlayerPosition 0 3
-# PlayerKeys
+# PlayerPosition 0 4
+# PlayerKeys 4162 4195 4228 4129 4096 4063 4030 3997 3964
 #
 # Names ad af ag ar at av az ba bi bo bon bu co ci da di do du fa fi fo fu ga ge gi gu io ko la lan lin lo re ro pa ta to von za x op yo san ma po u e
 # Weapons pillow charm fist herring rock stick sword hammer crossbow magic
