@@ -40,6 +40,7 @@ Tips:
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 
 [garyd@dizzymouse doors]$ ./doors exits
+
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway
 To the e is The Small Stinky Garden
@@ -47,27 +48,32 @@ To the s is no exit
 To the w is The Small Obscure Crypt
 
 [garyd@dizzymouse doors]$ ./doors look n
+
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway
 
 [garyd@dizzymouse doors]$ ./doors listen n
+
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway
 You listen to the n, and hear something.
 
 [garyd@dizzymouse doors]$ ./doors go n
+
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway
 ? Open this door with "open <N|E|S|W> <code>"
 ? Hint: nlkuco
 
 [garyd@dizzymouse doors]$ ./doors open n unlock
+
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway
 ! Well done! You have unlocked The Cramped Fancy Causeway
 You've acquired the key to The Cramped Fancy Causeway!
 
 [garyd@dizzymouse doors]$ ./doors go n
+
 ? 0x4 | The Modest Wicked Skyway | 4228 | Occupied: 0 | Pit: 0
 To the n is The Cramped Fancy Causeway
 ! Key in collection 4195
@@ -75,6 +81,7 @@ To the n is The Cramped Fancy Causeway
 Game state updated with PlayerPosition 0 3
 
 [garyd@dizzymouse doors]$ ./doors exits
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
@@ -93,6 +100,7 @@ To the s is The Modest Wicked Skyway
 To the w is The Modest Expensive Entryway
 
 [garyd@dizzymouse doors]$ ./doors listen e
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
@@ -109,6 +117,7 @@ To the e is The Large Stuffy Corridor
 You listen to the e, and hear nothing.
 
 [garyd@dizzymouse doors]$ ./doors go e
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
@@ -126,6 +135,7 @@ To the e is The Large Stuffy Corridor
 ? Hint: asemes
 
 [garyd@dizzymouse doors]$ ./doors open e sesame
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
@@ -143,6 +153,7 @@ To the e is The Large Stuffy Corridor
 You've acquired the key to The Large Stuffy Corridor!
 
 [garyd@dizzymouse doors]$ ./doors go e
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
@@ -160,9 +171,11 @@ To the e is The Large Stuffy Corridor
 ! Granting access, updating position
 
 [garyd@dizzymouse doors]$ ./doors look
+
 ? 1x3 | The Large Stuffy Corridor | 4198 | Occupied: 0 | Pit: 0
 
 [garyd@dizzymouse doors]$ ./doors go w
+
 ? 1x3 | The Large Stuffy Corridor | 4198 | Occupied: 0 | Pit: 0
 To the w is The Cramped Fancy Causeway
 ! Key in collection 4195
@@ -170,6 +183,7 @@ To the w is The Cramped Fancy Causeway
 Game state updated with PlayerPosition 0 3
 
 [garyd@dizzymouse doors]$ ./doors look
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
@@ -184,6 +198,7 @@ Game state updated with PlayerPosition 0 3
   Action 1591808157
 
 [garyd@dizzymouse doors]$ ./doors keys
+
 ? 0x3 | The Cramped Fancy Causeway | 4195 | Occupied: 1 | Pit: 0
 ! Room occupied
   Name	 dobuci 	Seed 4195
