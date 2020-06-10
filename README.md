@@ -4,7 +4,7 @@ Work in progress: A clever self-contained Python3 procedural generation "dungeon
 # Use
 Intended to be called once per command, so I can later hook it up to a remote channel (chat room, etc).
 
-Here is a sample run:
+# Example run:
 
 [garyd@dizzymouse doors]$ ./doors help
 
