@@ -29,6 +29,7 @@ iX = iY = 0;
 sTemp = "";             # Used by inline commands
 sSource = "";           # For embedded data
 oCurrentRoom = None;
+lPlayerKeys = [];
 # Dir-to-move lookup: Dir:[Xcomponent,Ycomponent]
 dDirs = {"n":[0,-1], "s":[0,1], "w":[-1,0], "e":[1,0]};
 # Simple string array of attribute mnemonics
@@ -249,8 +250,7 @@ def fnMove (argDir):                   # Player move in dir
         print ("Nothing in that direction.");
         return();
 
-    sKey = oRoom.Seed;
-    if str(sKey) in lPlayerKeys:
+    if str(oRoom.Seed) in lPlayerKeys:
         print ("! You open the door with your key.");
         fnUpdate ("PlayerPosition", str(oRoom.X) + " " + str(oRoom.Y));
         oRoom.Text();    # Show user new location
@@ -260,9 +260,8 @@ def fnMove (argDir):                   # Player move in dir
         return;
 
     # Inform/hint user if no key to this door yet
-    sHint = oRoom.Code(lDoorCodes);
     print ("? Open this door with \"open <N|E|S|W> <code>\"");
-    print ("? Hint:", sHint);
+    print ("? Hint:", oRoom.Code(lDoorCodes));
     return;
 
 # Handle user unlocking a door with code
@@ -270,6 +269,7 @@ def fnOpen (argRoom, argCode, argCodes):
     #
     print ("! To Do: Insert code: Return true if user already has key");
     #
+    print ("? Hint:", argRoom.Code(lDoorCodes));
     if argRoom.Open(argCode, argCodes):
         print ("! Well done! You have unlocked", argRoom.Name());
         fnGetKey (argRoom);
@@ -296,7 +296,8 @@ def fnInit ():                          # One-time new game init
     iY = random.randint(0, iHeight/2);
     oCurrentRoom = Room_Type (iX, iY);
     # To do: Grant freebie key to current room
-    # fnGetKey(oCurrentRoom);
+    print ("! Debug: Granting key to ", iX, iY);
+    fnGetKey (oCurrentRoom);
     # To do: Grant one free gift: random key, etc.
     # Update inline data
     fnUpdate ("PlayerPosition", str(iX) + " " + str(iY));
@@ -319,7 +320,6 @@ def fnTimeCurve (argOffset=0):
 
 # Main
 # -----------------------------------------------------
-lPlayerKeys = fnData("PlayerKeys"); # Mb blank 1-elm list :(
 lRoomAdjectives = fnData ("RoomAdjectives");  # Load world data
 lRoomSizes = fnData ("RoomSizes"); 
 lRoomTypes = fnData ("RoomTypes"); 
@@ -334,25 +334,29 @@ for sC in lTemp:                 # Split dict, 2 field max
     dictCommands[sSplit[0]] = sSplit[1];
     sDName = sSplit[0];
 
-# Load/init game state
-lTemp = fnData("PlayerPosition");     # Get player position
-if len(lTemp) >= 2:                   # If new game, init
-    iX = int(lTemp[0]);               # Else pos via inline data
+# Load/init player/game state
+lTemp = fnData ("PlayerPosition");    # Get player position
+if len(lTemp) >= 2:                   # If player position exists
+    iX = int(lTemp[0]);
     iY = int(lTemp[1]);
-else:
+else:                                 # Else init min state
     fnInit();
 
-# Instantiate current room
+lPlayerKeys = fnData("PlayerKeys");   # Mb blank 1-elm list :(
+if len(lPlayerKeys) < 1:
+    fnInit();
+
+# Instantiate current room (must happen before player keys handled?)
 oCurrentRoom = Room_Type (iX, iY);
 oCurrentRoom.Text();
+
 # Test NPC dump
 if oCurrentRoom.Occupied():
     print ("! Someone is here");
     oNPC = BrawlerType (oCurrentRoom.Seed);
     oNPC.Dump();
 
-# Handle command-line args, with args
-# Needs optimization bad
+# Handle command-line args: Needs optimizing
 if len(sys.argv) < 2:
     fnHelp();
     exit();
@@ -374,8 +378,8 @@ if len(sys.argv) == 4:
 # Inline data and game state
 # -----------------------------------------------------
 # Game State (randomized if empty, ie new game)
-# PlayerPosition 0 4
-# PlayerKeys 4162 4195 4228 4129 4096 4063 4030 3997 3964
+# PlayerPosition 1 4
+# PlayerKeys
 #
 # Names ad af ag ar at av az ba bi bo bon bu co ci da di do du fa fi fo fu ga ge gi gu io ko la lan lin lo re ro pa ta to von za x op yo san ma po u e
 # Weapons pillow charm fist herring rock stick sword hammer crossbow magic
