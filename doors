@@ -5,7 +5,8 @@
 # ---------------------------------------------------------------
 #   look                        Show current room/status
 #   look <N|E|S|W>              Look north, east, south, west
-#   open <N|E|S|W>              Unlock a door (or try)
+#   open <N|E|S|W>              Get puzzle for door
+#   open <N|E|S|W> <password>   Unlock door (or try)
 #   go   <N|E|S|W>              Go in direction (or try)
 #   take <object>               Take thing, if hands are free
 #   drop <object>               Drop whatever you're holding
@@ -219,8 +220,7 @@ def fnUpdate (argField, argValue):       # Update field in self
   outfile = open (sys.argv[0], "w");     # Note: Truncates file!
   outfile.write (sNewSelf);              # Crazy, huh?
   outfile.close();
-  # print ("Game state updated with", argField, argValue);
-  # sys.exit(0); 
+  # print ("Game state updated with", argField, argValue); # Debug
   return;
 
 # fnRoom: Return (obj) room to NSEW of (glob) X, Y - or none
@@ -378,7 +378,7 @@ if len(sys.argv) == 4:
 # Inline data and game state
 # -----------------------------------------------------
 # Game State (randomized if empty, ie new game)
-# PlayerPosition 1 4
+# PlayerPosition 3 4
 # PlayerKeys
 #
 # Names ad af ag ar at av az ba bi bo bon bu co ci da di do du fa fi fo fu ga ge gi gu io ko la lan lin lo re ro pa ta to von za x op yo san ma po u e
