@@ -2,6 +2,9 @@
 # Easy Doors command prompt
 
 $d = "./doors";
+print ("\nStarting an easy doors loop. Ctrl+C to quit...\n\n");
+print (`$d help`);     # Start with help
+
 while (true) {
 	print ("Doors > ");
 	$i = <STDIN>;
